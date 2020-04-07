@@ -1,8 +1,8 @@
 (ns otel.otel
   (:import [io.opentelemetry OpenTelemetry]
-           [io.opentelemetry.trace Span$Kind]))
+           [io.opentelemetry.trace Span$Kind Tracer]))
 
-(defn tracer
+(defn ^Tracer tracer
   "Set up a tracer using the OpenTelemetry API"
   []
   (let [tracer-provider (OpenTelemetry/getTracerProvider)]
@@ -27,3 +27,13 @@
   "Open a Scope for a Span, to be used with with-open"
   [span]
   (.withSpan (tracer) span))
+
+(defmacro with-span
+  [span-binding & body]
+  (let [[span-sym span-args] span-binding]
+    `(let [span-args# ~span-args
+           ~span-sym  (apply span span-args#)]
+       (try
+         (with-open [_# (span-scope ~span-sym)]
+           ~@body)
+         (finally (.end ~span-sym))))))
