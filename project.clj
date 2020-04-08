@@ -4,4 +4,5 @@
   :license {:name "BSD Standard License"
             :url "http://www.iplantcollaborative.org/sites/default/files/iPLANT-LICENSE.txt"}
   :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/tools.logging "0.3.1"]
                  [io.opentelemetry/opentelemetry-api "0.3.0"]])
