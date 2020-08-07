@@ -1,6 +1,6 @@
 (ns otel.otel
   (:import [io.opentelemetry OpenTelemetry]
-           [io.opentelemetry.trace Span$Kind Tracer]))
+           [io.opentelemetry.trace Span$Kind Tracer TracingContextUtils]))
 
 (defn ^Tracer tracer
   "Set up a tracer using the OpenTelemetry API"
@@ -17,11 +17,17 @@
 
 (defn span
   ([span-name]
-   (span span-name :internal))
+   (span span-name :internal []))
   ([span-name kind-key]
-   (-> (.spanBuilder (tracer) span-name)
-       (.setSpanKind (span-kinds kind-key))
-       (.startSpan))))
+   (span span-name kind-key []))
+  ([span-name kind-key link-spans]
+   (let [builder (->
+           (.spanBuilder (tracer) span-name)
+           (.setSpanKind (span-kinds kind-key)))]
+     (when (seq link-spans)
+       (.setParent builder (TracingContextUtils/getCurrentSpan))
+       (doall (map (fn [s] (.addLink builder (.getContext s))) link-spans)))
+     (.startSpan builder))))
 
 (defn span-scope
   "Open a Scope for a Span, to be used with with-open"
