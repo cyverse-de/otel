@@ -23,7 +23,9 @@
   ([span-name kind-key link-spans]
    (let [builder (->
            (.spanBuilder (tracer) span-name)
-           (.setSpanKind (span-kinds kind-key)))]
+           (.setSpanKind (span-kinds kind-key))
+           (.setAttribute "thread.id" (.getId (Thread/currentThread)))
+           (.setAttribute "thread.name" (.getName (Thread/currentThread))))]
      (when (seq link-spans)
        (.setParent builder (TracingContextUtils/getCurrentSpan))
        (doall (map (fn [s] (.addLink builder (.getContext s))) link-spans)))
