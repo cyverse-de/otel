@@ -15,17 +15,23 @@
    :producer Span$Kind/PRODUCER
    :consumer Span$Kind/CONSUMER})
 
+(def default-opts
+  {:kind :internal})
+
 (defn span
+  "Create a span. The optional `opts` can set various properties on the span,
+  and when not provided uses `default-opts`."
   ([span-name]
-   (span span-name :internal []))
-  ([span-name kind-key]
-   (span span-name kind-key []))
-  ([span-name kind-key link-spans]
-   (let [builder (->
+   (span span-name default-opts))
+  ([span-name opts]
+   (let [{:keys [kind link-spans attributes]} (merge default-opts opts)
+         builder (->
            (.spanBuilder (tracer) span-name)
-           (.setSpanKind (span-kinds kind-key))
+           (.setSpanKind (span-kinds kind))
            (.setAttribute "thread.id" (.getId (Thread/currentThread)))
            (.setAttribute "thread.name" (.getName (Thread/currentThread))))]
+     (when (seq attributes)
+       (doall (map (fn [[k v]] (.setAttribute builder k v)) attributes)))
      (when (seq link-spans)
        (.setParent builder (TracingContextUtils/getCurrentSpan))
        (doall (map (fn [s] (.addLink builder (.getContext s))) link-spans)))
