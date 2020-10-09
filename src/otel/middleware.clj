@@ -10,14 +10,14 @@
 
 (defn- do-span
   [request handler]
-  (if-let [compojure-route (:compojure/route request)]
-    (let [span-name (string/join " "
+  (let [span-name (if-let [compojure-route (:compojure/route request)]
+                    (string/join " "
                                  [(string/upper-case (name (compojure-route 0)))
-                                  (compojure-route 1)])]
-          (otel/with-span [span [span-name {:kind :server}]]
-            (handler request)))
-    (do
-      (log/warn "No compojure route information found, not adding opentelemetry span")
+                                 (compojure-route 1)])
+                    (do
+                      (log/warn "No compojure route information found, using generic opentelemetry span name")
+                      "Incoming HTTP request"))]
+    (otel/with-span [span [span-name {:kind :server}]]
       (handler request))))
 
 (defn- extract-context
