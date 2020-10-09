@@ -14,7 +14,7 @@
     (let [span-name (string/join " "
                                  [(string/upper-case (name (compojure-route 0)))
                                   (compojure-route 1)])]
-          (otel/with-span [span [span-name :server]]
+          (otel/with-span [span [span-name {:kind :server}]]
             (handler request)))
     (do
       (log/warn "No compojure route information found, not adding opentelemetry span")
