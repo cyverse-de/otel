@@ -18,6 +18,9 @@
 (def default-opts
   {:kind :internal})
 
+
+(defn ^Span current-span [] (TracingContextUtils/getCurrentSpan))
+
 (defn ^Span span
   "Create a span. The optional `opts` can set various properties on the span,
   and when not provided uses `default-opts`."
@@ -33,7 +36,7 @@
      (when (seq attributes)
        (doall (map (fn [[k v]] (.setAttribute builder k v)) attributes)))
      (when (seq link-spans)
-       (.setParent builder (TracingContextUtils/getCurrentSpan))
+       (.setParent builder (current-span))
        (doall (map (fn [^Span s] (.addLink builder (.getContext s))) link-spans)))
      (.startSpan builder))))
 
