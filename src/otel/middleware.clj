@@ -13,7 +13,7 @@
   (let [span-name (if-let [compojure-route (:compojure/route request)]
                     (string/join " "
                                  [(string/upper-case (name (compojure-route 0)))
-                                 (compojure-route 1)])
+                                 (str (:context request "") (compojure-route 1))])
                     (do
                       (log/warn "No compojure route information found, using generic opentelemetry span name")
                       "Incoming HTTP request"))]
