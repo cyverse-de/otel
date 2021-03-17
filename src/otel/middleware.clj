@@ -17,7 +17,7 @@
                     (do
                       (log/debug "No compojure route info found. Using base Ring definitions, which may be less useful.")
                       (string/join " "
-                                 [(string/upper-case (name (:content-type request :unknown)))
+                                 [(string/upper-case (name (:request-method request :unknown)))
                                   (:uri request "(unknown path)")])))]
     (otel/with-span [span [span-name {:kind :server}]]
       (handler request))))
