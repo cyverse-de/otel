@@ -1,4 +1,4 @@
-(defproject org.cyverse/otel "0.2.2-SNAPSHOT"
+(defproject org.cyverse/otel "0.2.2"
   :description "A Clojure library wrapping the opentelemetry client for Java"
   :url "https://github.com/cyverse-de/otel"
   :license {:name "BSD Standard License"
