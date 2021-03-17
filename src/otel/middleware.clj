@@ -15,8 +15,10 @@
                                  [(string/upper-case (name (compojure-route 0)))
                                  (str (:context request "") (compojure-route 1))])
                     (do
-                      (log/warn "No compojure route information found, using generic opentelemetry span name")
-                      "Incoming HTTP request"))]
+                      (log/debug "No compojure route info found. Using base Ring definitions, which may be less useful.")
+                      (string/join " "
+                                 [(string/upper-case (name (:content-type request :unknown)))
+                                  (:uri request "(unknown path)")])))]
     (otel/with-span [span [span-name {:kind :server}]]
       (handler request))))
 
