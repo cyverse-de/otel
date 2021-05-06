@@ -8,4 +8,4 @@
   :plugins [[test2junit "1.2.2"]]
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [io.opentelemetry/opentelemetry-api "0.7.0"]])
+                 [io.opentelemetry/opentelemetry-api "1.1.0"]])

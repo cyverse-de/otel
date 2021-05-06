@@ -1,25 +1,26 @@
 (ns otel.otel
-  (:import [io.opentelemetry OpenTelemetry]
-           [io.opentelemetry.trace Span Span$Kind Tracer TracingContextUtils]))
+  (:import [io.opentelemetry.api GlobalOpenTelemetry]
+           [io.opentelemetry.api.trace Span SpanKind Tracer]
+           [io.opentelemetry.context Context]))
 
 (defn ^Tracer tracer
   "Set up a tracer using the OpenTelemetry API"
   []
-  (let [tracer-provider (OpenTelemetry/getTracerProvider)]
+  (let [tracer-provider (GlobalOpenTelemetry/getTracerProvider)]
     (.get tracer-provider "otel.otel clojure")))
 
 (def span-kinds
-  {:internal Span$Kind/INTERNAL
-   :server   Span$Kind/SERVER
-   :client   Span$Kind/CLIENT
-   :producer Span$Kind/PRODUCER
-   :consumer Span$Kind/CONSUMER})
+  {:internal SpanKind/INTERNAL
+   :server   SpanKind/SERVER
+   :client   SpanKind/CLIENT
+   :producer SpanKind/PRODUCER
+   :consumer SpanKind/CONSUMER})
 
 (def default-opts
   {:kind :internal})
 
 
-(defn ^Span current-span [] (TracingContextUtils/getCurrentSpan))
+(defn ^Span current-span [] (Span/current))
 
 (defn ^Span span
   "Create a span. The optional `opts` can set various properties on the span,
@@ -37,13 +38,13 @@
        (doall (map (fn [[k v]] (.setAttribute builder k v)) attributes)))
      (when (seq link-spans)
        (.setParent builder (current-span))
-       (doall (map (fn [^Span s] (.addLink builder (.getContext s))) link-spans)))
+       (doall (map (fn [^Span s] (.addLink builder (.getSpanContext s))) link-spans)))
      (.startSpan builder))))
 
 (defn span-scope
   "Open a Scope for a Span, to be used with with-open"
   [span]
-  (.withSpan (tracer) span))
+  (.makeCurrent (.with (Context/current) span)))
 
 (defmacro with-span
   [span-binding & body]

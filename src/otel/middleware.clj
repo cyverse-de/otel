@@ -4,9 +4,8 @@
             [clojure.string :as string]
             [clojure.tools.logging :as log])
   (:import [java.io Closeable]
-           [io.grpc Context]
-           [io.opentelemetry OpenTelemetry]
-           [io.opentelemetry.context ContextUtils]))
+           [io.opentelemetry.api GlobalOpenTelemetry]
+           [io.opentelemetry.context Context]))
 
 (defn- do-span
   [request handler]
@@ -25,9 +24,10 @@
 (defn- extract-context
   [request]
   (try
-    (ContextUtils/withScopedContext
+    (.makeCurrent
       (.extract
-        (.getHttpTextFormat (OpenTelemetry/getPropagators))
+        (.getTextMapPropagator
+          (GlobalOpenTelemetry/getPropagators))
         (Context/current)
         request
         (http/ring-getter)))
