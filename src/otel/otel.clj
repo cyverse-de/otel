@@ -1,7 +1,8 @@
 (ns otel.otel
   (:import [io.opentelemetry.api GlobalOpenTelemetry]
+           [io.opentelemetry.api.common AttributeKey]
            [io.opentelemetry.api.trace Span SpanKind Tracer]
-           [io.opentelemetry.context Context]))
+           [io.opentelemetry.context Context Scope]))
 
 (defn ^Tracer tracer
   "Set up a tracer using the OpenTelemetry API"
@@ -32,19 +33,24 @@
          builder (->
            (.spanBuilder (tracer) span-name)
            (.setSpanKind (span-kinds kind))
-           (.setAttribute "thread.id" (.getId (Thread/currentThread)))
+           (.setAttribute "thread.id" (.threadId (Thread/currentThread)))
            (.setAttribute "thread.name" (.getName (Thread/currentThread))))]
      (when (seq attributes)
-       (doall (map (fn [[k v]] (.setAttribute builder k v)) attributes)))
+       (doall (map (fn [[k v]] (.setAttribute builder ^AttributeKey k ^Object v)) attributes)))
      (when (seq link-spans)
        (.setParent builder (current-span))
        (doall (map (fn [^Span s] (.addLink builder (.getSpanContext s))) link-spans)))
      (.startSpan builder))))
 
-(defn span-scope
+(defn ^Scope span-scope
   "Open a Scope for a Span, to be used with with-open"
   [span]
   (.makeCurrent (.with (Context/current) span)))
+
+(defn end-span
+  "Simply calls .end on a span. This was being used to fix an unresolvable field reference warning."
+  [^Span span]
+  (.end span))
 
 (defmacro with-span
   [span-binding & body]
@@ -54,4 +60,4 @@
        (try
          (with-open [_# (span-scope ~span-sym)]
            ~@body)
-         (finally (.end ~span-sym))))))
+         (finally (end-span ~span-sym))))))
