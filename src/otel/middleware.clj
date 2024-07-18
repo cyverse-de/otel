@@ -21,7 +21,7 @@
     (otel/with-span [span [span-name {:kind :server}]]
       (handler request))))
 
-(defn- extract-context
+(defn- ^Closeable extract-context
   [request]
   (try
     (.makeCurrent
